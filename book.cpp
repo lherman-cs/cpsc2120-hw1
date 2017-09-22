@@ -23,7 +23,9 @@ Book::Book(const char *src)
 {
   ifstream fin;
   string page, value;
-  int prev_id = -1, id = -1, lookup_id = -1;
+  int prev_id = -1, id = -1, lookup_id = -1,
+      cntr = 0, i = 0;
+  char loading[] = {'/', '-', '\\', '|'};
 
   fin.open(src);
   while (fin >> value)
@@ -42,6 +44,10 @@ Book::Book(const char *src)
 
   size = pages.get_num_keys();
   book = new Page *[size];
+
+  // Loading starts
+  cout << "Loading..." << loading[0] << flush;
+
   while (fin >> value)
   {
     // Process the string s here...
@@ -82,9 +88,19 @@ Book::Book(const char *src)
       // Add the word to the inverted_index
       inverted_index[value] = new IdNode(id, inverted_index[value]);
     }
+
+    // Loading bar logic
+    if (cntr % 250000 == 0)
+    {
+      i++;
+      cout << '\b' << loading[i % 4] << flush;
+    }
+    cntr++;
   }
+  cout << '\b' << ' ' << flush;
   fin.close();
   random_walk();
+  cout << endl;
 }
 
 Book::~Book()

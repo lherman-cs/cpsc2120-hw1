@@ -9,10 +9,15 @@ int main(void)
     string input;
     Book book = Book("webpages.txt");
 
-    while (cin >> input)
+    cout << endl
+         << "Search: ";
+    cin >> input;
+    do
     {
         book.search(input);
-    }
+        cout << endl
+             << "Search: ";
+    } while (cin >> input);
 
     return 0;
 }
