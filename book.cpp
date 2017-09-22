@@ -84,6 +84,7 @@ Book::Book(const char *src)
     }
   }
   fin.close();
+  random_walk();
 }
 
 Book::~Book()

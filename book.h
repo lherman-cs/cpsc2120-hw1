@@ -17,11 +17,11 @@ private:
   int size;
   DictionaryNode<int> *add(string page, int weight,
                            DictionaryNode<int> *head);
+  void random_walk();
 
 public:
   Book(const char *src);
   ~Book();
-  void random_walk();
   void search(string word);
   void print();
 };
