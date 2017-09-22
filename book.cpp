@@ -18,6 +18,7 @@ bool is_link(string s)
   return true;
 }
 
+/* Load book from the source path given */
 Book::Book(const char *src)
 {
   ifstream fin;
@@ -39,8 +40,8 @@ Book::Book(const char *src)
   fin.clear();
   fin.seekg(0, ios::beg);
 
-  this->size = pages.get_num_keys();
-  book = new Page *[this->size];
+  size = pages.get_num_keys();
+  book = new Page *[size];
   while (fin >> value)
   {
     // Process the string s here...
@@ -48,32 +49,37 @@ Book::Book(const char *src)
     {
       fin >> page;
       lookup_id = pages[page];
+
+      // Get the id from pages if it is set.
+      // Else, load the prev_id and increment it
       if (lookup_id != -1)
         id = lookup_id;
       else
       {
         id = prev_id;
-        book[++id] = new Page();
-        book[id]->name = page;
+        book[++id] = new Page(page);
         prev_id = id;
       }
     }
     else if (is_link(value))
     {
+      // Add the link to book if it goes to a valid webpage
       if (pages.find(value))
       {
-        book[id]->link = new DictionaryNode<int>(value, pages[value], book[id]->link);
+        book[id]->link = new DictionaryNode<int>(
+            value, pages[value], book[id]->link);
+
         book[id]->num_links++;
         pages[page] = id;
       }
     }
+    // Add the word to book
     else
     {
       book[id]->word = new SetNode(value, book[id]->word);
-      book[id]->num_words++;
       pages[page] = id;
 
-      // Add word to the inverted_index
+      // Add the word to the inverted_index
       inverted_index[value] = new IdNode(id, inverted_index[value]);
     }
   }
@@ -82,6 +88,7 @@ Book::Book(const char *src)
 
 Book::~Book()
 {
+  // Delete book
   for (int i = 0; i < this->size; i++)
   {
     if (book[i])
@@ -90,13 +97,6 @@ Book::~Book()
     }
   }
   delete[] book;
-
-  // // Delete book
-  // for (int i = 0; i < book.get_num_keys(); i++)
-  // {
-  //   delete book[keys[i]];
-  // }
-  // delete[] keys;
 
   // Delete inverted_index
   string *keys = inverted_index.keys();
@@ -107,6 +107,7 @@ Book::~Book()
   delete[] keys;
 }
 
+/* Stabilize probability by randomly walking down all the pages */
 void Book::random_walk()
 {
   int i, j, t, id;
@@ -116,10 +117,14 @@ void Book::random_walk()
   for (i = 0; i < this->size; i++)
     book[i]->weight = 1 / double(this->size);
 
+  // Repeat 50 times
   for (j = 0; j < 50; j++)
   {
+    // Give each page initial new_weight 0.1 / N
     for (i = 0; i < this->size; i++)
       book[i]->new_weight = 0.1 / double(this->size);
+
+    // Adjust each page's weight that is in the link list
     for (i = 0; i < this->size; i++)
     {
       cursor = book[i]->link;
@@ -127,6 +132,7 @@ void Book::random_walk()
       while (cursor != NULL)
       {
         id = cursor->value;
+        // If id is not set, lookup the table
         if (id == -1)
         {
           id = pages[cursor->key];
@@ -136,11 +142,13 @@ void Book::random_walk()
         cursor = cursor->next;
       }
     }
+    // Set each page's weight to the new weight
     for (i = 0; i < this->size; i++)
       book[i]->weight = book[i]->new_weight;
   }
 }
 
+/* Search word in the book and give the rank associated with it */
 void Book::search(string word)
 {
   IdNode *cursor = inverted_index[word];
@@ -152,13 +160,5 @@ void Book::search(string word)
     weight = (int)(page->weight * 100 * size);
     cout << weight << " " << page->name << endl;
     cursor = cursor->next;
-  }
-}
-
-void Book::print()
-{
-  for (int i = 0; i < size; i++)
-  {
-    cout << book[i]->weight << endl;
   }
 }

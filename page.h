@@ -13,7 +13,6 @@ struct Page
     double weight;
     double new_weight;
     int num_links;
-    int num_words;
 
     Page()
     {
@@ -23,14 +22,22 @@ struct Page
         weight = 0.0;
         new_weight = 0.0;
         num_links = 0;
-        num_words = 0;
+    }
+
+    Page(string name)
+    {
+        this->name = name;
+        link = NULL;
+        word = NULL;
+        weight = 0.0;
+        new_weight = 0.0;
+        num_links = 0;
     }
 
     Page(const Page &rhs)
     {
         name = rhs.name;
         num_links = 0;
-        num_words = 0;
 
         for (DictionaryNode<int> *cursor = rhs.link; cursor; cursor = cursor->next)
         {
@@ -40,7 +47,6 @@ struct Page
         for (SetNode *cursor = rhs.word; cursor; cursor = cursor->next)
         {
             word = new SetNode(cursor->value, word);
-            num_words++;
         }
 
         weight = rhs.weight;
