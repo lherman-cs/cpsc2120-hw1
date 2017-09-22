@@ -152,13 +152,37 @@ void Book::random_walk()
 void Book::search(string word)
 {
   IdNode *cursor = inverted_index[word];
+  DictionaryNode<int> *weight_node = NULL, *weight_cursor, *del;
   Page *page;
   int weight;
   while (cursor != NULL)
   {
     page = book[cursor->id];
     weight = (int)(page->weight * 100 * size);
-    cout << weight << " " << page->name << endl;
+    weight_node = add(page->name, weight, weight_node);
     cursor = cursor->next;
   }
+
+  weight_cursor = weight_node;
+  while (weight_cursor != NULL)
+  {
+    cout << weight_cursor->value << " " << weight_cursor->key << endl;
+
+    del = weight_cursor;
+    weight_cursor = weight_cursor->next;
+    delete del;
+  }
+}
+
+/* 
+  Helper to sort the weights. The performance can be significantly improved
+  by using a binary tree. But, maybe for later :)
+*/
+DictionaryNode<int> *Book::add(string page, int weight,
+                               DictionaryNode<int> *head)
+{
+  if (head == NULL || weight > head->value)
+    return new DictionaryNode<int>(page, weight, head);
+  head->next = add(page, weight, head->next);
+  return head;
 }

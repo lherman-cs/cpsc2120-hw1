@@ -15,6 +15,8 @@ private:
   Dictionary<int> pages;
   Dictionary<IdNode *> inverted_index;
   int size;
+  DictionaryNode<int> *add(string page, int weight,
+                           DictionaryNode<int> *head);
 
 public:
   Book(const char *src);
