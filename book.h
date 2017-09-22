@@ -11,8 +11,10 @@ class Book
 {
 
 private:
-  Dictionary<Page *> book;
-  Dictionary<SetNode *> index_table;
+  Page **book;
+  Dictionary<int> pages;
+  Dictionary<IdNode *> inverted_index;
+  int size;
 
 public:
   Book(const char *src);

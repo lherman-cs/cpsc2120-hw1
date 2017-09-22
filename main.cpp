@@ -6,10 +6,14 @@ using namespace std;
 
 int main(void)
 {
+    string input;
     Book book = Book("webpages.txt");
-
     book.random_walk();
-    book.search("olympiad");
+
+    while (cin >> input)
+    {
+        book.search(input);
+    }
 
     return 0;
 }

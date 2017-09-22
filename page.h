@@ -7,7 +7,8 @@ using namespace std;
 
 struct Page
 {
-    SetNode *link;
+    string name;
+    DictionaryNode<int> *link;
     SetNode *word;
     double weight;
     double new_weight;
@@ -16,6 +17,7 @@ struct Page
 
     Page()
     {
+        name = "";
         link = NULL;
         word = NULL;
         weight = 0.0;
@@ -26,12 +28,13 @@ struct Page
 
     Page(const Page &rhs)
     {
+        name = rhs.name;
         num_links = 0;
         num_words = 0;
 
-        for (SetNode *cursor = rhs.link; cursor; cursor = cursor->next)
+        for (DictionaryNode<int> *cursor = rhs.link; cursor; cursor = cursor->next)
         {
-            link = new SetNode(cursor->value, link);
+            link = new DictionaryNode<int>(cursor->key, cursor->value, link);
             num_links++;
         }
         for (SetNode *cursor = rhs.word; cursor; cursor = cursor->next)
@@ -47,10 +50,10 @@ struct Page
 
     ~Page()
     {
-        SetNode *cursor_link = link;
+        DictionaryNode<int> *cursor_link = link;
         while (cursor_link != NULL)
         {
-            SetNode *del = cursor_link;
+            DictionaryNode<int> *del = cursor_link;
             cursor_link = cursor_link->next;
             delete del;
         }

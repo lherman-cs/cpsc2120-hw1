@@ -1,7 +1,6 @@
 #include <fstream>
 #include <iostream>
 #include <string.h>
-#include <assert.h>
 #include "book.h"
 
 using namespace std;
@@ -23,6 +22,7 @@ Book::Book(const char *src)
 {
   ifstream fin;
   string page, value;
+  int prev_id = -1, id = -1, lookup_id = -1;
 
   fin.open(src);
   while (fin >> value)
@@ -31,8 +31,7 @@ Book::Book(const char *src)
     if (value == "NEWPAGE")
     {
       fin >> page;
-      if (!book.find(page))
-        book.insert(page, new Page());
+      pages.insert(page, -1);
     }
   }
 
@@ -40,26 +39,42 @@ Book::Book(const char *src)
   fin.clear();
   fin.seekg(0, ios::beg);
 
+  this->size = pages.get_num_keys();
+  book = new Page *[this->size];
   while (fin >> value)
   {
     // Process the string s here...
     if (value == "NEWPAGE")
+    {
       fin >> page;
+      lookup_id = pages[page];
+      if (lookup_id != -1)
+        id = lookup_id;
+      else
+      {
+        id = prev_id;
+        book[++id] = new Page();
+        book[id]->name = page;
+        prev_id = id;
+      }
+    }
     else if (is_link(value))
     {
-      if (book.find(value))
+      if (pages.find(value))
       {
-        book[page]->link = new SetNode(value, book[page]->link);
-        book[page]->num_links++;
+        book[id]->link = new DictionaryNode<int>(value, pages[value], book[id]->link);
+        book[id]->num_links++;
+        pages[page] = id;
       }
     }
     else
     {
-      book[page]->word = new SetNode(value, book[page]->word);
-      book[page]->num_words++;
+      book[id]->word = new SetNode(value, book[id]->word);
+      book[id]->num_words++;
+      pages[page] = id;
 
-      // Add word to the index table
-      index_table[value] = new SetNode(page, index_table[value]);
+      // Add word to the inverted_index
+      inverted_index[value] = new IdNode(id, inverted_index[value]);
     }
   }
   fin.close();
@@ -67,77 +82,83 @@ Book::Book(const char *src)
 
 Book::~Book()
 {
-  // Delete book
-  string *keys = book.keys();
-  for (int i = 0; i < book.get_num_keys(); i++)
+  for (int i = 0; i < this->size; i++)
   {
-    delete book[keys[i]];
+    if (book[i])
+    {
+      delete book[i];
+    }
   }
-  delete[] keys;
+  delete[] book;
 
-  // Delete index_table
-  keys = index_table.keys();
-  for (int i = 0; i < index_table.get_num_keys(); i++)
+  // // Delete book
+  // for (int i = 0; i < book.get_num_keys(); i++)
+  // {
+  //   delete book[keys[i]];
+  // }
+  // delete[] keys;
+
+  // Delete inverted_index
+  string *keys = inverted_index.keys();
+  for (int i = 0; i < inverted_index.get_num_keys(); i++)
   {
-    delete index_table[keys[i]];
+    delete inverted_index[keys[i]];
   }
   delete[] keys;
 }
 
 void Book::random_walk()
 {
-  int i, j, N = book.get_num_keys(), t;
-  Page **values = book.values();
-  Page *page;
-  SetNode *cursor;
+  int i, j, t, id;
+  DictionaryNode<int> *cursor;
 
   // Give each page initial weight 1 / N
-  for (i = 0; i < N; i++)
-    values[i]->weight = 1 / double(N);
+  for (i = 0; i < this->size; i++)
+    book[i]->weight = 1 / double(this->size);
 
   for (j = 0; j < 50; j++)
   {
-    for (i = 0; i < N; i++)
-      values[i]->new_weight = 0.1 / double(N);
-    for (i = 0; i < N; i++)
+    for (i = 0; i < this->size; i++)
+      book[i]->new_weight = 0.1 / double(this->size);
+    for (i = 0; i < this->size; i++)
     {
-      page = values[i];
-      cursor = page->link;
-      t = page->num_links;
+      cursor = book[i]->link;
+      t = book[i]->num_links;
       while (cursor != NULL)
       {
-        book[cursor->value]->new_weight += 0.9 * page->weight / t;
+        id = cursor->value;
+        if (id == -1)
+        {
+          id = pages[cursor->key];
+          cursor->value = id;
+        }
+        book[id]->new_weight += 0.9 * book[i]->weight / t;
         cursor = cursor->next;
       }
     }
-    for (i = 0; i < N; i++)
-      values[i]->weight = values[i]->new_weight;
+    for (i = 0; i < this->size; i++)
+      book[i]->weight = book[i]->new_weight;
   }
-
-  delete[] values;
 }
 
 void Book::search(string word)
 {
-  SetNode *cursor = index_table[word];
+  IdNode *cursor = inverted_index[word];
   Page *page;
-  double weight;
-  int N = book.get_num_keys();
+  int weight;
   while (cursor != NULL)
   {
-    page = book[cursor->value];
-    weight = page->weight * 100 * N;
-    cout << weight << " " << cursor->value << endl;
+    page = book[cursor->id];
+    weight = (int)(page->weight * 100 * size);
+    cout << weight << " " << page->name << endl;
     cursor = cursor->next;
   }
 }
 
 void Book::print()
 {
-  string *keys = book.keys();
-  for (int i = 0; i < book.get_num_keys(); i++)
+  for (int i = 0; i < size; i++)
   {
-    cout << book[keys[i]]->weight << endl;
+    cout << book[i]->weight << endl;
   }
-  delete[] keys;
 }

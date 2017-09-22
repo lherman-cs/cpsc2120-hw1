@@ -6,6 +6,30 @@
 
 using namespace std;
 
+struct IdNode
+{
+  int id;
+  IdNode *next;
+  IdNode(int id, IdNode *next)
+  {
+    this->id = id;
+    this->next = next;
+  }
+  IdNode()
+  {
+    this->id = 0;
+    this->next = NULL;
+  }
+  ~IdNode()
+  {
+  }
+  IdNode(const IdNode &rhs)
+  {
+    id = rhs.id;
+    next = rhs.next;
+  }
+};
+
 struct SetNode
 {
   string value;
