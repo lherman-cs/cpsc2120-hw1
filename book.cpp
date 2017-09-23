@@ -5,19 +5,6 @@
 
 using namespace std;
 
-bool is_link(string s)
-{
-  string url_specifier = "http://";
-  int specifier_len = url_specifier.size(), s_len = s.size(), j = 0;
-
-  for (int i = 0; i < specifier_len; i++)
-  {
-    if (j >= s_len || url_specifier[i] != s[j++])
-      return false;
-  }
-  return true;
-}
-
 /* Load book from the source path given */
 Book::Book(const char *src)
 {
@@ -67,17 +54,14 @@ Book::Book(const char *src)
         prev_id = id;
       }
     }
-    else if (is_link(value))
+    else if (pages.find(value))
     {
       // Add the link to book if it goes to a valid webpage
-      if (pages.find(value))
-      {
-        book[id]->link = new DictionaryNode<int>(
-            value, pages[value], book[id]->link);
+      book[id]->link = new DictionaryNode<int>(
+          value, pages[value], book[id]->link);
 
-        book[id]->num_links++;
-        pages[page] = id;
-      }
+      book[id]->num_links++;
+      pages[page] = id;
     }
     // Add the word to book
     else
