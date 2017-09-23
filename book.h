@@ -14,6 +14,7 @@ private:
   Page **book;
   Dictionary<int> pages;
   Dictionary<IdNode *> inverted_index;
+  Dictionary<BSTNode *> cache;
   int size;
   BSTNode *insert(string page, int weight, BSTNode *head);
   void print_in_reverse_order(BSTNode *head);

@@ -106,6 +106,14 @@ Book::~Book()
     delete inverted_index[keys[i]];
   }
   delete[] keys;
+
+  // Delete BST caches
+  keys = cache.keys();
+  for (int i = 0; i < cache.get_num_keys(); i++)
+  {
+    delete_tree(cache[keys[i]]);
+  }
+  delete[] keys;
 }
 
 /* Stabilize probability by randomly walking down all the pages */
@@ -149,27 +157,40 @@ void Book::random_walk()
   }
 }
 
-/* Search word in the book and give the rank associated with it */
+/* 
+  Search word in the book and give the rank associated with it.
+  The word then will be stored in cache to siginificantly improve
+  the performance in the afterward search.
+*/
 void Book::search(string word)
 {
-  IdNode *cursor = inverted_index[word];
-  BSTNode *head = NULL;
-  Page *page;
-  int weight;
-  while (cursor != NULL)
+  BSTNode *head;
+
+  if (cache.find(word))
+    head = cache[word];
+
+  else
   {
-    page = book[cursor->id];
-    weight = (int)(page->weight * 100 * size);
-    head = insert(page->name, weight, head);
-    cursor = cursor->next;
+    IdNode *cursor = inverted_index[word];
+    head = NULL;
+    Page *page;
+    int weight;
+    while (cursor != NULL)
+    {
+      page = book[cursor->id];
+      weight = (int)(page->weight * 100 * size);
+      head = insert(page->name, weight, head);
+      cursor = cursor->next;
+    }
+    cache.insert(word, head);
   }
 
   print_in_reverse_order(head);
-  delete_tree(head);
 }
 
 /*
-  Helpers using Binary search tree to reverse sort the output
+  insert, print_in_reverse_order, and delete_tree are helpers 
+  using Binary search tree to reverse sort the output.
 */
 BSTNode *Book::insert(string page, int weight, BSTNode *head)
 {
