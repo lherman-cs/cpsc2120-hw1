@@ -33,7 +33,7 @@ Book::Book(const char *src)
   book = new Page *[size];
 
   // Loading starts
-  cout << "Loading..." << loading[0] << flush;
+  cout << "Loading... " << loading[0] << flush;
 
   while (fin >> value)
   {
@@ -81,9 +81,10 @@ Book::Book(const char *src)
     }
     cntr++;
   }
-  cout << '\b' << ' ' << flush;
+
   fin.close();
   random_walk();
+  cout << '\b' << "done" << flush;
   cout << endl;
 }
 
