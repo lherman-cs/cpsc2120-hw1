@@ -80,4 +80,19 @@ struct DictionaryNode
   }
 };
 
+struct BSTNode
+{
+  string page;
+  int weight;
+  BSTNode *left;
+  BSTNode *right;
+  BSTNode(string page, int weight)
+  {
+    this->page = page;
+    this->weight = weight;
+    this->left = NULL;
+    this->right = NULL;
+  }
+};
+
 #endif

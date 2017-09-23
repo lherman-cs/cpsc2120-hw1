@@ -15,8 +15,9 @@ private:
   Dictionary<int> pages;
   Dictionary<IdNode *> inverted_index;
   int size;
-  DictionaryNode<int> *add(string page, int weight,
-                           DictionaryNode<int> *head);
+  BSTNode *insert(string page, int weight, BSTNode *head);
+  void print_in_reverse_order(BSTNode *head);
+  void delete_tree(BSTNode *head);
   void random_walk();
 
 public:
